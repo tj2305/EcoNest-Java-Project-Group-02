@@ -22,4 +22,8 @@ The unified launcher is `econest.Main` and includes Tasks 1 through 9:
 8. Client dispatch notifications
 9. Delivery-agent notifications
 
-The application uses a shared in-memory `AppStore`. Data and notification logs are retained while the application is running and reset when it closes.
+## User experience
+
+The shared workspace uses a forest-green navigation rail, responsive task pages, searchable/sortable tables, and consistent form and action styling. The task panels continue to be organized by their original member packages.
+
+The application uses a shared in-memory `AppStore`. Data and notification logs are retained while the application is running and reset when it closes. Email notifications are recorded in a local demo log; SMTP delivery is not configured.
