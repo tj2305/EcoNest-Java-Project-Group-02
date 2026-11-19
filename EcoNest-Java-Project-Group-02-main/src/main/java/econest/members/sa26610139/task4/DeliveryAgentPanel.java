@@ -1,6 +1,7 @@
 package econest.members.sa26610139.task4;
 
 import econest.common.AppStore;
+import econest.common.CustomerOrder;
 import econest.common.DeliveryAgent;
 import econest.ui.Refreshable;
 import econest.ui.UiSupport;
@@ -41,8 +42,24 @@ public class DeliveryAgentPanel extends JPanel implements Refreshable {
         String phone = phoneField.getText().trim(), vehicle = vehicleField.getText().trim();
         if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || vehicle.isEmpty())
             throw new IllegalArgumentException("Enter the agent's name, email, phone, and vehicle details.");
+        if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"))
+            throw new IllegalArgumentException("Enter a valid email address.");
+        if (!phone.matches("^\\+?[0-9][0-9 ()-]{6,19}$"))
+            throw new IllegalArgumentException("Enter a valid phone number.");
+        for (DeliveryAgent agent : store.getAgents()) {
+            if (agent.getId().equals(id)) continue;
+            if (agent.getEmail().equalsIgnoreCase(email))
+                throw new IllegalArgumentException("Another delivery agent already uses this email address.");
+            if (normalizePhone(agent.getPhone()).equals(normalizePhone(phone)))
+                throw new IllegalArgumentException("Another delivery agent already uses this phone number.");
+        }
         return new DeliveryAgent(id, name, email, phone, vehicle);
     }
+
+    private String normalizePhone(String phone) {
+        return phone.replaceAll("[^0-9]", "");
+    }
+
     private void addAgent() {
         try { store.addAgent(readAgent(store.nextAgentId())); refresh(); clearFields(); }
         catch (IllegalArgumentException ex) { UiSupport.showError(this, ex.getMessage()); }
@@ -59,6 +76,14 @@ public class DeliveryAgentPanel extends JPanel implements Refreshable {
     private void removeAgent() {
         int row = table.getSelectedRow(); if (row < 0) { UiSupport.showError(this, "Select an agent first."); return; }
         String id = String.valueOf(model.getValueAt(table.convertRowIndexToModel(row), 0));
+        for (CustomerOrder order : store.getOrders()) {
+            DeliveryAgent assignedAgent = order.getDeliveryAgent();
+            if (assignedAgent != null && assignedAgent.getId().equals(id)) {
+                UiSupport.showError(this, "This agent is assigned to order " + order.getId()
+                        + ". Reassign the order before removing the agent.");
+                return;
+            }
+        }
         store.getAgents().remove(store.findAgent(id)); refresh(); clearFields();
     }
     private void loadSelected() {
